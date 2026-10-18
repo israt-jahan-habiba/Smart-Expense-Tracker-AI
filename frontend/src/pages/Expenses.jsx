@@ -28,15 +28,6 @@ export default function Expenses({ user }) {
       setText("");
     } catch (x) { say("err", x.message); }
   }
-  async function scan(e) {
-    const file = e.target.files[0]; if (!file) return;
-    const form = new FormData(); form.append("file", file); say("", "");
-    try {
-      const r = await api("/ai/receipt", { method: "POST", form });
-      setDraft({ amount: r.amount ?? "", date: r.date, category_id: r.category_id, subcategory: r.subcategory || "", payment_method: "cash", description: r.store, receipt_path: r.receipt_path, note: "Read from receipt. OCR can misread: confirm the amount before saving." });
-    } catch (x) { say("err", x.message); }
-    e.target.value = "";
-  }
   async function save(e) {
     e.preventDefault();
     const { note, id, category, ...body } = draft;
@@ -67,7 +58,6 @@ export default function Expenses({ user }) {
         <form className="row" onSubmit={smartAdd}>
           <label>Describe the expense<input value={text} onChange={(e) => setText(e.target.value)} placeholder="Bought KFC dinner 500 taka" required minLength={2} /></label>
           <button className="btn">Read expense</button>
-          <label style={{ flex: "0 0 auto" }}>Or scan a receipt<input type="file" accept="image/*" onChange={scan} /></label>
         </form>
         {draft && (
           <form className="preview" onSubmit={save}>

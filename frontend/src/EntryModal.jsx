@@ -7,9 +7,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export default function EntryModal({ user, onClose, onSaved }) {
   const [cats, setCats] = useState([]);
-  const [f, setF] = useState({ amount: "", date: today(), category_id: null, description: "", payment_method: "cash", subcategory: null, receipt_path: null });
+  const [f, setF] = useState({ amount: "", date: today(), category_id: null, description: "", payment_method: "cash", subcategory: null });
   const [text, setText] = useState("");
-  const [img, setImg] = useState(null);
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   useEffect(() => { api("/categories").then((c) => { setCats(c); setF((x) => ({ ...x, category_id: c[0]?.id })); }); }, []);
@@ -20,15 +19,6 @@ export default function EntryModal({ user, onClose, onSaved }) {
     setBusy("parse"); setErr("");
     try { const p = await api("/ai/parse-expense", { method: "POST", body: { text: t } });
       setF((x) => ({ ...x, amount: p.amount, date: p.date, category_id: p.category_id, description: p.description, subcategory: p.subcategory })); }
-    catch (x) { setErr(x.message); }
-    setBusy("");
-  }
-  async function scan(e) {
-    const file = e.target.files[0]; if (!file) return;
-    setImg(URL.createObjectURL(file)); setBusy("scan"); setErr("");
-    const form = new FormData(); form.append("file", file);
-    try { const r = await api("/ai/receipt", { method: "POST", form });
-      setF((x) => ({ ...x, amount: r.amount ?? "", date: r.date, category_id: r.category_id, description: r.store, subcategory: r.subcategory, receipt_path: r.receipt_path })); }
     catch (x) { setErr(x.message); }
     setBusy("");
   }
@@ -58,9 +48,6 @@ export default function EntryModal({ user, onClose, onSaved }) {
           <label>Date<input type="date" required value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></label>
         </div>
         <label style={{ marginTop: 10 }}>Note<input value={f.description} maxLength={255} onChange={(e) => setF({ ...f, description: e.target.value })} /></label>
-        <label style={{ marginTop: 10 }}>Or scan a receipt<input type="file" accept="image/*" capture="environment" onChange={scan} /></label>
-        {img && <div className={`scanbox ${busy === "scan" ? "scanning" : ""}`}><img src={img} alt="Receipt being scanned" /></div>}
-        {busy === "scan" && <p className="muted small">Scanning receipt…</p>}
         {err && <div className="err" role="alert">{err}</div>}
         <div className="row" style={{ marginTop: 14, justifyContent: "flex-end" }}><button type="button" className="btn ghost" onClick={onClose}>Cancel</button><button className="btn">Save expense</button></div>
       </motion.form>

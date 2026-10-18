@@ -1,33 +1,16 @@
-import os, shutil
-from pathlib import Path
+import os
 from datetime import date
 from sqlalchemy import create_engine, ForeignKey, String, Integer, Date, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
-BACKEND_DIR = Path(__file__).resolve().parent.parent
-
-
-def _database_url() -> str:
-    """SQLite lives at a FIXED path (backend/expense.db) no matter which folder the server is started from.
-    A relative path like ./expense.db would silently create a new empty database per working directory."""
-    url = os.getenv("DATABASE_URL", "")
-    if not url:
-        target = BACKEND_DIR / "expense.db"
-    elif url.startswith("sqlite:///") and not url.startswith("sqlite:////") and ":memory:" not in url:
-        target = (BACKEND_DIR / url[len("sqlite:///"):]).resolve()  # relative sqlite path -> relative to backend/
-    else:
-        return url  # PostgreSQL or an absolute SQLite path: use as given
-    legacy = Path.cwd() / "expense.db"  # older versions used the current folder; carry that data over once
-    if not target.exists() and legacy.exists() and legacy.resolve() != target:
-        shutil.copy2(legacy, target)
-    return f"sqlite:///{target.as_posix()}"
-
-
-DATABASE_URL = _database_url()
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'expense.db')}"
 print(f"[expense-tracker] database: {DATABASE_URL}")
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite:") else {},
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 

@@ -40,7 +40,7 @@ export default function Onboarding({ user, onDone }) {
         <AnimatePresence mode="wait">
           {step === 0 && <motion.div key="0" {...slide} className="grid"><Wallet /><h1>Take control of your money</h1><p className="muted">A smart companion that tracks, explains and improves your spending.</p></motion.div>}
           {step === 1 && <motion.div key="1" {...slide} className="grid"><h1>Here's how it works</h1>
-            <div className="feat">{[["💳", "Track Expenses", "Type, speak or scan a receipt."], ["📊", "Analyze Spending", "See where it goes and why."], ["🚀", "Save Smarter", "Goals, challenges and AI advice."]].map(([i, t, d], k) =>
+            <div className="feat">{[["💳", "Track Expenses", "Type or speak your expenses."], ["📊", "Analyze Spending", "See where it goes and why."], ["🚀", "Save Smarter", "Goals, challenges and AI advice."]].map(([i, t, d], k) =>
               <motion.div key={t} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + k * 0.15 }}>{i} <strong>{t}</strong><div className="muted small">{d}</div></motion.div>)}</div></motion.div>}
           {step === 2 && <motion.div key="2" {...slide} className="grid card" style={{ textAlign: "left" }}><h2>Set up your plan</h2>
             <label>Monthly income<input type="number" min="0" value={income} onChange={(e) => setIncome(e.target.value)} placeholder="50000" /></label>

@@ -123,8 +123,13 @@ def insights(db: Session, user: User) -> list[dict]:
 
 def build_facts(db: Session, user: User) -> dict:
     cur = this_month()
-    return {"currency": user.currency, "monthly_income": user.monthly_income_minor / 100, "goals": user.financial_goals,
-            "this_month_by_category": {k: v / 100 for k, v in spent_by_category(db, user.id, cur).items()},
-            "last_month_by_category": {k: v / 100 for k, v in spent_by_category(db, user.id, shift_month(cur, -1)).items()},
-            "budgets": budget_status(db, user.id, cur), "insights": insights(db, user),
-            "forecast_next_month": forecast(db, user.id)["categories"][:5]}
+    current = {k: v / 100 for k, v in spent_by_category(db, user.id, cur).items()}
+    previous = {k: v / 100 for k, v in spent_by_category(db, user.id, shift_month(cur, -1)).items()}
+    income = user.monthly_income_minor / 100
+    spent = sum(current.values())
+    return {"currency": user.currency, "month": cur, "monthly_income": income,
+            "this_month_total": round(spent, 2), "this_month_remaining": round(income - spent, 2),
+            "this_month_savings_rate": round((income - spent) / income * 100, 1) if income else None,
+            "goals": user.financial_goals, "this_month_by_category": current,
+            "last_month_by_category": previous, "budgets": budget_status(db, user.id, cur),
+            "insights": insights(db, user), "forecast_next_month": forecast(db, user.id)["categories"][:5]}
