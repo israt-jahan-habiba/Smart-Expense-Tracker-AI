@@ -3,10 +3,14 @@ from datetime import date
 from sqlalchemy import create_engine, ForeignKey, String, Integer, Date, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./expense.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'expense.db')}"
+print(f"[expense-tracker] database: {DATABASE_URL}")
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite:") else {},
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False)
 

@@ -31,7 +31,7 @@ export default function Insights({ user }) {
         <div className="row" style={{ marginBottom: 10 }}>{SUGGEST.map((s) => <button key={s} type="button" className="btn ghost sm" style={{ flex: "0 0 auto" }} onClick={() => ask(s)}>{s}</button>)}</div>
         <div className="chat" aria-live="polite">
           {log.map((m, i) => <motion.div key={i} className={`msg ${m.role}`} initial={{ opacity: 0, y: 10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}>{m.text}
-            {m.source === "rules" && <div className="muted small">Rule-based answer. Add an API key for AI-written advice.</div>}</motion.div>)}
+            {m.source === "rules" && <div className="muted small">Data-grounded assistant · answers are calculated from your recorded finances.</div>}</motion.div>)}
           {busy && <div className="msg a dots" aria-label="Assistant is thinking"><span /><span /><span /></div>}
           <div ref={end} />
         </div>

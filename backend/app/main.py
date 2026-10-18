@@ -82,7 +82,7 @@ class ProfileIn(BaseModel):
 
 
 def create_user(db: Session, name, email, password, phone=None, income=0.0) -> User:
-    u = User(name=name, email=email.lower(), phone=phone, password_hash=hash_password(password), monthly_income_minor=minor(income))
+    u = User(name=name, email=email.strip().lower(), phone=phone, password_hash=hash_password(password), monthly_income_minor=minor(income))
     db.add(u)
     db.flush()
     db.add_all([Category(user_id=u.id, name=n, is_default=True) for n in DEFAULT_CATS])
@@ -92,15 +92,17 @@ def create_user(db: Session, name, email, password, phone=None, income=0.0) -> U
 
 @api.post("/auth/register", status_code=201)
 def register(body: RegisterIn, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == body.email.lower()).first():
+    email = body.email.strip().lower()
+    if db.query(User).filter(User.email == email).first():
         raise HTTPException(409, "Email already registered")
-    u = create_user(db, body.name, body.email, body.password, body.phone)
+    u = create_user(db, body.name, email, body.password, body.phone)
     return {"token": make_token(u.id), "user": user_out(u)}
 
 
 @api.post("/auth/login")
 def login(body: LoginIn, db: Session = Depends(get_db)):
-    u = db.query(User).filter(User.email == body.email.lower()).first()
+    email = body.email.strip().lower()
+    u = db.query(User).filter(User.email == email).first()
     if not u or not verify_password(body.password, u.password_hash):
         raise HTTPException(401, "Incorrect email or password")
     return {"token": make_token(u.id), "user": user_out(u)}
@@ -252,8 +254,9 @@ async def scan_receipt(file: UploadFile = File(...), u: User = Depends(current_u
         f.write(data)
     try:
         r = ocr.scan(data)
-    except Exception:
-        raise HTTPException(501, "OCR unavailable: install the Tesseract binary (see README). The image was not read.")
+    except ocr.OCRUnavailable as ex:
+        raise HTTPException(501, "Could not read the receipt. Quick fix: run 'pip install rapidocr-onnxruntime' in the backend environment and restart the server "
+                                 f"(or install Tesseract, see README). Details: {ex}")
     c = category_by_name(db, u, r["category"])
     return {**r, "category_id": c.id, "category": c.name, "receipt_path": name}
 

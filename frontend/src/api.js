@@ -1,5 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || "";
 const KEY = "set_token";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 export const getToken = () => localStorage.getItem(KEY);
 export const setToken = (t) => (t ? localStorage.setItem(KEY, t) : localStorage.removeItem(KEY));
 
