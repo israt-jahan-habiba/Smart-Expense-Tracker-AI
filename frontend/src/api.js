@@ -1,5 +1,4 @@
 const KEY = "set_token";
-const API_BASE = import.meta.env.VITE_API_URL || "";
 export const getToken = () => localStorage.getItem(KEY);
 export const setToken = (t) => (t ? localStorage.setItem(KEY, t) : localStorage.removeItem(KEY));
 
@@ -7,7 +6,7 @@ export async function api(path, { method = "GET", body, form, blob } = {}) {
   const headers = {};
   if (getToken()) headers.Authorization = `Bearer ${getToken()}`;
   if (body) headers["Content-Type"] = "application/json";
-  const res = await fetch(`${API_BASE}/api${path}`, { method, headers, body: form || (body ? JSON.stringify(body) : undefined) });
+  const res = await fetch(`/api${path}`, { method, headers, body: form || (body ? JSON.stringify(body) : undefined) });
   if (res.status === 401 && getToken()) { setToken(null); location.reload(); }
   if (!res.ok) {
     let msg = res.statusText;
